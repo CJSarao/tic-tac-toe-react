@@ -1,45 +1,46 @@
 import React from 'react';
 import Board from './Board';
+import {connect} from 'react-redux';
+import { GameState, initialState } from '../reducers/reducer';
 
-interface GameProps {
-  history: any
-}
-
-interface GameState {
-//
-// Ceci est un workaround non digne d'un vrai typescripter
-//
+interface PropsFromState {
   history : any
   stepNumber : number
   xIsNext : boolean
 }
 
-class Game extends React.Component<GameProps, GameState> {
-  constructor(props:GameProps){
+interface State {}
+
+const mapDispatchToProps = (dispatch:any) => ({
+    handleClick: () => dispatch({type: 'CLICK'})
+})
+
+const mapStateToProps = (initialState:GameState) => ({
+    history: initialState.history,
+    stepNumber: initialState.stepNumber,
+    xIsNext: initialState.xIsNext
+})
+
+class Game extends React.Component<PropsFromState, State> {
+  constructor(props:PropsFromState){
     super(props);
-    this.state = {
-      history: [{
-        squares: Array(9).fill(null),
-      }],
-      stepNumber: 0,
-      xIsNext: true,
-    };
+    this.state = {}
   }
 
   handleClick(i: number) {
-      const history = this.state.history.slice(0, this.state.stepNumber + 1);
+      const history = this.props.history.slice(0, this.props.stepNumber + 1);
       const current = history[history.length - 1];
       const squares = current.squares.slice();
       if (calculateWinner(squares) || squares[i]) {
         return;
       }
-      squares[i] = this.state.xIsNext ? 'X' : 'O';
+      squares[i] = this.props.xIsNext ? 'X' : 'O';
       this.setState({
         history: history.concat([{
           squares: squares,
         }]),
         stepNumber: history.length,
-        xIsNext: !this.state.xIsNext,
+        xIsNext: !this.props.xIsNext,
       })
   }
 
@@ -51,10 +52,9 @@ class Game extends React.Component<GameProps, GameState> {
   }
 
   render() {
-    const history = this.state.history;
-    const current = history[this.state.stepNumber];    
+    const history = this.props.history;
+    const current = history[this.props.stepNumber];    
     const winner = calculateWinner(current.squares);
-
     const moves = history.map((step:number, move:number) => {
       const desc = move ?
         'Go to move #' + move :
@@ -69,7 +69,7 @@ class Game extends React.Component<GameProps, GameState> {
     if (winner) {
       status = 'Winner: ' + winner;
     } else {
-      status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+      status = 'Next player: ' + (this.props.xIsNext ? 'X' : 'O');
     }
 
 
@@ -109,4 +109,4 @@ const calculateWinner = (squares : number[]) => {
   return null;
 }
 
-export default Game;
+export default connect(mapStateToProps, mapDispatchToProps)(Game);
