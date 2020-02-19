@@ -1,84 +1,66 @@
 import React from 'react';
 import Board from './Board';
+import { connect } from 'react-redux';
+import { GameState } from '../reducers/reducer';
 
-interface GameProps {
-  history: any
+const mapDispatchToProps = (dispatch:any) => {
+  return {
+    handleClick: (payload:number) => dispatch({type: 'TAKE_TURN', payload}),
+    jumpTo: (payload:number) => dispatch({type: 'GO_BACK', payload})
+  }
 }
 
-interface GameState {
-//
-// Ceci est un workaround non digne d'un vrai typescripter
-//
+const mapStateToProps = (state:GameState) => ({
+    currentGame: state.currentGame,
+    history: state.history,
+    stepNumber: state.stepNumber,
+    xIsNext: state.xIsNext,
+    winner: state.winner
+})
+
+interface PropsFromState {
+  currentGame : string[]
   history : any
   stepNumber : number
   xIsNext : boolean
+  winner : string
+  handleClick: (payload:number) => void
+  jumpTo: (payload:number) => void
 }
 
-class Game extends React.Component<GameProps, GameState> {
-  constructor(props:GameProps){
-    super(props);
-    this.state = {
-      history: [{
-        squares: Array(9).fill(null),
-      }],
-      stepNumber: 0,
-      xIsNext: true,
-    };
-  }
-
-  handleClick(i: number) {
-      const history = this.state.history.slice(0, this.state.stepNumber + 1);
-      const current = history[history.length - 1];
-      const squares = current.squares.slice();
-      if (calculateWinner(squares) || squares[i]) {
-        return;
-      }
-      squares[i] = this.state.xIsNext ? 'X' : 'O';
-      this.setState({
-        history: history.concat([{
-          squares: squares,
-        }]),
-        stepNumber: history.length,
-        xIsNext: !this.state.xIsNext,
-      })
-  }
-
-  jumpTo(step:number){
-    this.setState({
-      stepNumber: step,
-      xIsNext: (step % 2) === 0,
-    });
-  }
-
+class Game extends React.Component<PropsFromState> {
   render() {
-    const history = this.state.history;
-    const current = history[this.state.stepNumber];    
-    const winner = calculateWinner(current.squares);
-
+    console.log(this.props.history)
+    console.log(this.props.stepNumber)
+    console.log(this.props.winner)
+    console.log(this.props.xIsNext)
+    console.log(this.props.currentGame)
+    const history = this.props.history;
+    const current = history[this.props.stepNumber];    
     const moves = history.map((step:number, move:number) => {
       const desc = move ?
         'Go to move #' + move :
         'Go to game start';
       return(
         <li key={move}>
-          <button onClick={() => this.jumpTo(move)}>{desc}</button>
+          <button onClick={() => this.props.jumpTo(move)}>{desc}</button>
         </li>
       );
     });
     let status;
-    if (winner) {
-      status = 'Winner: ' + winner;
-    } else {
-      status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
-    }
 
+    if (this.props.winner) {
+      status = 'Winner: ' + this.props.winner;
+    } else {
+      status = 'Next player: ' + (this.props.xIsNext ? 'X' : 'O');
+    }
 
     return (
       <div className="game">
         <div className="game-board">
           <Board 
             squares={current.squares}
-            onClick={(i) => this.handleClick(i)}
+            onClick={(i) => this.props.handleClick(i)}
           />
         </div>
         <div className="game-info">
@@ -89,24 +71,4 @@ class Game extends React.Component<GameProps, GameState> {
     );
   }
 }
-const calculateWinner = (squares : number[]) => {
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
-    }
-  }
-  return null;
-}
-
-export default Game;
+export default connect(mapStateToProps, mapDispatchToProps)(Game);

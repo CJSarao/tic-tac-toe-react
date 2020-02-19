@@ -1,3 +1,7 @@
+
+Les props ne sont pas passés au composant GAME
+for some reason
+
 Mon projet de tic-tac-toe du tutoriel sur le site de REACT
 
 Améliorations redux: 
@@ -23,4 +27,3 @@ Connecter le component react/redux
     5. When someone wins, highlight the three squares that caused the win.
     
     6. When no one wins, display a message about the result being a draw.
-    
